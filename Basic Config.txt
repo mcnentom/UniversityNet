@@ -1,0 +1,47 @@
+en
+config t
+hostname Server-sw
+line console 0
+password mcnen123
+logging synchronous
+login
+exit
+
+vlan 10
+name MGT
+exit
+vlan 20
+name LAN
+exit
+vlan 30
+name Voice
+exit
+vlan 40
+name WLAN
+exit
+vlan 50
+name Servers
+exit
+vlan 60
+name DeadPorts
+exit
+vlan 1000
+name Ports
+exit
+
+enable password mcnen123
+service password-encryption
+no ip domain-lookup
+ip domain-name mcnen.com
+username mcnen password mcnen123
+crypto key generate rsa general-keys modulus 1024
+line vty 0 15
+login local
+transport input ssh
+exit	
+access-list 1 permit 192.168.0.0 0.0.0.255
+access-list 1 deny any
+line vty 0 15
+access-class 1 in
+exit
+do wr
