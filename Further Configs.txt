@@ -1,0 +1,192 @@
+int range fa0/3-5
+switchport mode access
+switchport access vlan 10
+no shut
+exit
+
+int range fa0/1-2
+switchport mode trunk
+exit
+
+For all Access ports
+int range fa0/1-24,gig0/1-2
+spanning-tree portfast
+exit
+
+spanning-tree portfast bpduguard enable
+
+On L3 Switch
+ip routing
+
+##Define vlans
+vlan 10
+name MGT
+exit
+vlan 20
+name LAN
+exit
+vlan 30
+name Voice
+exit
+vlan 40
+name WLAN
+exit
+vlan 50
+name Servers
+exit
+
+## Intervlan routing and HSRP
+
+int vlan 10
+ip address 192.168.0.2 255.255.255.0
+standby 10 ip 192.168.0.1
+standby 10 priority 110
+standby 10 preempt
+no shut
+exit
+
+int vlan 20
+ip address 172.20.10.2 255.255.255.0
+standby 20 ip 172.20.10.1
+standby 20 priority 110
+standby 20 preempt
+no shut
+exit
+
+int vlan 30
+ip address 172.20.11.2 255.255.255.0
+standby 30 ip 172.20.11.1
+standby 30 priority 110
+standby 30 preempt
+no shut
+exit
+
+int vlan 40
+ip address 10.20.0.2 255.255.0.0
+standby 40 ip 10.20.0.1
+standby 40 priority 100
+standby 40 preempt
+no shut
+exit
+
+int vlan 50
+ip address 172.20.15.2 255.255.255.0
+standby 50 ip 172.20.15.1
+standby 50 priority 100
+standby 50 preempt
+no shut
+exit
+
+int gig1/0/1
+no switchport
+ip address 10.10.20.1 255.255.255.252
+exit
+
+## Etherchannel
+
+int range gig1/0/7-10
+channel-group 1 mode active
+no shut
+exit
+
+int port-channel 1
+switchport mode trunk
+switchport allow vlan 10,20,30,40,50,1000
+exit
+
+
+## OSPF
+router ospf 50
+router-id 1.1.1.1
+network 192.168.0.0 0.0.0.255 area 0
+network 172.20.10.0 0.0.0.255 area 0
+network 172.20.11.0 0.0.0.255 area 0
+network 10.20.0.0 0.0.255.255 area 0
+network 10.10.20.0 0.0.0.3 area 0
+network 10.10.21.0 0.0.0.3 area 0
+exit
+
+## Telephony
+
+int fa0/0.30
+encapsulation dot1Q 30
+ip address 172.20.11.1 255.255.255.0
+no shut
+exit
+service dhcp
+ip dhcp pool voice
+network 172.20.11.0 255.255.255.0
+default-router 172.20.11.1
+option 150 ip 172.20.11.1
+exit
+telephony-service
+max-dn 15
+max-ephones 15
+ip source-address 172.20.11.1 port 2000
+auto assign 1 to 15
+exit
+
+ephone-dn 1
+number 401
+exit
+
+ephone-dn 2
+number 402
+exit
+
+ephone-dn 3
+number 403
+exit
+
+ephone-dn 4
+number 404
+exit
+
+ephone-dn 5
+number 405
+exit
+
+ephone-dn 6
+number 406
+exit
+
+ephone-dn 7
+number 407
+exit
+
+ephone-dn 8
+number 408
+exit
+
+ephone-dn 9
+number 409
+exit
+
+ephone-dn 10
+number 410
+exit
+
+ephone-dn 11
+number 411
+exit
+
+ephone-dn 12
+number 412
+exit
+
+ephone-dn 13
+number 413
+exit
+
+ephone-dn 14
+number 414
+exit
+
+ephone-dn 15
+number 415
+exit
+
+
+
+
+
