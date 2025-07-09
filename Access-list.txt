@@ -1,38 +1,107 @@
-access-list IN-OUT extended permit icmp 10.10.20.0 255.255.255.252 198.100.0.0 255.255.255.252
-access-list IN-OUT extended permit icmp 10.10.21.0 255.255.255.252 198.100.0.0 255.255.255.252
-access-list IN-OUT extended permit tcp 10.10.21.0 255.255.255.252 198.100.0.0 255.255.255.252 eq 80
-access-list IN-OUT extended permit tcp 10.10.21.0 255.255.255.252 198.100.0.0 255.255.255.252 eq 8080
-access-list IN-OUT extended permit tcp 10.10.20.0 255.255.255.252 198.100.0.0 255.255.255.252 eq 8080
-access-list IN-OUT extended permit tcp 10.10.20.0 255.255.255.252 198.100.0.0 255.255.255.252 eq 80
-access-list IN-OUT extended permit icmp 10.10.20.0 255.255.255.252 10.40.0.0 255.255.255.0
-access-list IN-OUT extended permit icmp 10.10.21.0 255.255.255.252 10.40.0.0 255.255.255.0
-access-list IN-OUT extended permit icmp 172.20.10.0 255.255.255.0 10.40.0.0 255.255.255.0
-access-list IN-OUT extended permit icmp 192.168.0.0 255.255.255.0 10.40.0.0 255.255.255.0
-access-list IN-OUT extended permit icmp 10.20.0.0 255.255.0.0 10.40.0.0 255.255.255.0
+config t
+hostname Uni-Firewall
+enable password mcnen123
+username mcnen password mcnen123
+
+aaa authentication ssh console local
+crypto key generate rsa modulus 1024
+ssh 192.168.0.0 255.255.255.0 INSIDE
+ssh timeout 3
+
+int gig1/1
+no shut
+ip address 10.10.20.2 255.255.255.252
+nameif INSIDE
+security-level 100
+exit
+
+int gig1/2
+no shut
+ip address 10.10.21.2 255.255.255.252
+nameif INSIDE2
+security-level 100
+exit
+
+int gig1/3
+no shut
+ip address 10.10.10.1 255.255.255.0
+nameif DMZ
+security-level 50
+exit
+
+int gig1/4
+no shut
+ip address 198.100.0.2 255.255.255.252
+nameif OUTSIDE
+security-level 0
+exit
+
+router ospf 50
+router-id 6.6.6.6
+network 10.10.20.0 255.255.255.252 area 0
+network 10.10.21.0 255.255.255.252 area 0
+network 10.10.10.0 255.255.255.0 area 0
+network 198.100.0.0 255.255.255.252 area 0
+exit
+
+route OUTSIDE 0.0.0.0 0.0.0.0 198.100.0.1
+
+object network IN-OUT
+subnet 10.20.0.0 255.255.0.0
+subnet 192.168.0.0 255.255.255.0
+subnet 172.20.10.0 255.255.255.0
+nat (INSIDE, OUTSIDE) dynamic interface
+nat (INSIDE2, OUTSIDE) dynamic interface
+exit
 
 access-list OUT-IN extended permit icmp 198.100.0.0 255.255.255.252 172.20.10.0 255.255.255.0
-access-list OUT-IN extended permit icmp 198.100.0.0 255.255.255.252 192.168.0.0 255.255.255.0
-access-list OUT-IN extended permit icmp 198.100.0.0 255.255.255.252 10.20.0.0 255.255.0.0
-access-list OUT-IN extended permit icmp 10.40.0.0 255.255.255.0 10.20.0.0 255.255.0.0
+access-list OUT-IN extended permit icmp 200.100.20.0 255.255.255.252 172.20.10.0 255.255.255.0
 access-list OUT-IN extended permit icmp 10.40.0.0 255.255.255.0 172.20.10.0 255.255.255.0
+access-list OUT-IN extended permit icmp 198.100.0.0 255.255.255.252 192.168.0.0 255.255.255.0
+access-list OUT-IN extended permit icmp 200.100.20.0 255.255.255.252 192.168.0.0 255.255.255.0
 access-list OUT-IN extended permit icmp 10.40.0.0 255.255.255.0 192.168.0.0 255.255.255.0
+access-list OUT-IN extended permit icmp 198.100.0.0 255.255.255.252 10.20.0.0 255.255.0.0
+access-list OUT-IN extended permit icmp 200.100.20.0 255.255.255.252 10.20.0.0 255.255.0.0
+access-list OUT-IN extended permit icmp 10.40.0.0 255.255.255.0 10.20.0.0 255.255.0.0
+access-group OUT-IN in int OUTSIDE
 
-access-list DMZ-IN extended permit icmp 10.10.10.0 255.255.255.0 172.20.15.0 255.255.255.0
-access-list DMZ-IN extended permit icmp 10.10.10.0 255.255.255.0 192.168.0.0 255.255.255.0
-access-list DMZ-IN extended permit icmp 10.10.10.0 255.255.255.0 10.20.0.0 255.255.0.0
-access-group DMZ-IN in int DMZ
+access-list DMZ-ACCESS extended permit icmp any any
+access-list DMZ-ACCESS extended permit tcp any any eq 80
+access-list DMZ-ACCESS extended permit tcp any any eq 8080
+access-group DMZ-ACCESS in int DMZ
 
-access-list DMZ-OUT extended permit icmp 10.10.10.0 255.255.255.0 198.100.0.0 255.255.255.252
-access-list DMZ-OUT extended permit icmp 10.10.10.0 255.255.255.0 any
-access-group DMZ-OUT in int DMZ
-
-access-list IN-DMZ extended permit icmp any 10.10.10.0 255.255.255.0
-access-list IN-DMZ extended permit tcp any 10.10.10.0 255.255.255.0 eq 80
-access-list IN-DMZ extended permit tcp any 10.10.10.0 255.255.255.0 eq 8080
+access-list IN-DMZ extended permit icmp 192.168.0.0 255.255.255.0  10.10.10.0 255.255.255.0
+access-list IN-DMZ extended permit icmp 172.20.10.0 255.255.255.0  10.10.10.0 255.255.255.0
+access-list IN-DMZ extended permit icmp 10.20.0.0 255.255.0.0  10.10.10.0 255.255.255.0
+access-list IN-DMZ extended permit tcp 192.168.0.0 255.255.255.0 host 10.10.10.10 eq 80
+access-list IN-DMZ extended permit tcp 172.20.10.0 255.255.255.0 host 10.10.10.10 eq 80
+access-list IN-DMZ extended permit tcp 10.20.0.0 255.255.0.0 host 10.10.10.10 eq 80
+access-list IN-DMZ extended permit tcp 192.168.0.0 255.255.255.0 host 10.10.10.10 eq 8080
+access-list IN-DMZ extended permit tcp 172.20.10.0 255.255.255.0 host 10.10.10.10 eq 8080
+access-list IN-DMZ extended permit tcp 10.20.0.0 255.255.0.0 host 10.10.10.10 eq 8080
 access-group IN-DMZ in int INSIDE
 access-group IN-DMZ in int INSIDE2
 
-access-list OUT-DMZ extended permit icmp any 10.10.10.0 255.255.255.0
-access-list OUT-DMZ extended permit tcp any 10.10.10.0 255.255.255.0 eq 8080
-access-list OUT-DMZ extended permit tcp any 10.10.10.0 255.255.255.0 eq 80
+access-list IN-OUT extended permit icmp 192.168.0.0 255.255.255.0 198.100.0.0 255.255.255.252
+access-list IN-OUT extended permit icmp 172.20.10.0 255.255.255.0 198.100.0.0 255.255.255.252
+access-list IN-OUT extended permit icmp 10.20.0.0 255.255.0.0 198.100.0.0 255.255.255.252
+access-list IN-OUT extended permit icmp 192.168.0.0 255.255.255.0 200.100.20.0 255.255.255.252
+access-list IN-OUT extended permit icmp 172.20.10.0 255.255.255.0 200.100.20.0 255.255.255.252
+access-list IN-OUT extended permit icmp 10.20.0.0 255.255.0.0 200.100.20.0 255.255.255.252
+access-list IN-OUT extended permit icmp 192.168.0.0 255.255.255.0 10.40.0.0 255.255.255.0
+access-list IN-OUT extended permit icmp 172.20.10.0 255.255.255.0 10.40.0.0 255.255.255.0
+access-list IN-OUT extended permit icmp 10.20.0.0 255.255.0.0 10.40.0.0 255.255.255.0
+access-group IN-OUT in int INSIDE
+access-group IN-OUT in int INSIDE2
+
+
+access-list OUT-DMZ extended permit icmp 198.100.0.0 255.255.255.252 10.10.10.0 255.255.255.0
+access-list OUT-DMZ extended permit icmp 200.100.20.0 255.255.255.252 10.10.10.0 255.255.255.0
+access-list OUT-DMZ extended permit icmp 10.40.0.0 255.255.255.0 10.10.10.0 255.255.255.0
+access-list OUT-DMZ extended permit tcp 198.100.0.0 255.255.255.252 10.10.10.0 255.255.255.0 eq 8080
+access-list OUT-DMZ extended permit tcp 200.100.20.0 255.255.255.252 10.10.10.0 255.255.255.0 eq 8080
+access-list OUT-DMZ extended permit tcp 10.40.0.0 255.255.255.0 10.10.10.0 255.255.255.0 eq 8080
+access-list OUT-DMZ extended permit tcp 198.100.0.0 255.255.255.252 10.10.10.0 255.255.255.0 eq 80
+access-list OUT-DMZ extended permit tcp 200.100.20.0 255.255.255.252 10.10.10.0 255.255.255.0 eq 80
+access-list OUT-DMZ extended permit tcp 10.40.0.0 255.255.255.0 10.10.10.0 255.255.255.0 eq 80
 access-group OUT-DMZ in int OUTSIDE
