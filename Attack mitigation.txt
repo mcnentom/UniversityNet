@@ -1,0 +1,19 @@
+VlAN Attacks
+int range fa0/1-2
+switchport nonegotiate
+switchport trunk native vlan 999
+exit
+
+interface range gigabitEthernet1/0/2-6
+switchport mode trunk
+switchport trunk native vlan 999
+
+DHCP Spoofing
+int range fa0/1-2
+ip dhcp snooping trust
+exit
+int range fa0/3-24,gig0/1-2
+ip dhcp snooping limit rate 4
+exit
+ip dhcp snooping vlan 10,20,40
+
