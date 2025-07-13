@@ -19,6 +19,7 @@ On L3 Switch
 ip routing
 
 ##Define vlans
+
 vlan 10
 name MGT
 exit
