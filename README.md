@@ -56,7 +56,7 @@ This covers the design of a university/Enterprize network which can be scaled to
 * Firewall.
 
 ## Network Design
-
+![Network Topology](https://github.com/mcnentom/UniversityNet/blob/main/UNiNet.PNG)
 ## Basic Settings
 
 On the layer 2 switches,these are the configurations commands:
